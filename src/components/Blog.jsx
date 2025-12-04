@@ -57,7 +57,7 @@ const Blog = () => {
       category: '3D Graphics',
       excerpt: 'Bring your web projects to life with stunning 3D graphics.',
       content:
-        "Three.js is a JavaScript library that makes 3D web development accessible. Learn how to create 3D scenes, add lighting, textures, and animations. This guide will help you understand the basics of WebGL and how to build immersive web experiences.",
+        'Three.js is a JavaScript library that makes 3D web development accessible. Learn how to create 3D scenes, add lighting, textures, and animations. This guide will help you understand the basics of WebGL and how to build immersive web experiences.',
       author: 'Kelechukwu Eze',
     },
     {
@@ -87,23 +87,24 @@ const Blog = () => {
       category: 'DevOps',
       excerpt: 'Simplify deployment with Docker containers and streamline your workflow.',
       content:
-        "Docker allows you to package applications and their dependencies into containers. Learn how to create Dockerfile, build images, run containers, and use Docker Compose for multi-container applications. Discover how Docker improves consistency across environments.",
+        'Docker allows you to package applications and their dependencies into containers. Learn how to create Dockerfile, build images, run containers, and use Docker Compose for multi-container applications. Discover how Docker improves consistency across environments.',
       author: 'Kelechukwu Eze',
     },
   ];
 
   const categories = ['All', 'React', 'CSS', '3D Graphics', 'Backend', 'Database', 'DevOps'];
-  const filteredPosts = selectedCategory === 'All' ? blogPosts : blogPosts.filter((p) => p.category === selectedCategory);
+  const filteredPosts =
+    selectedCategory === 'All'
+      ? blogPosts
+      : blogPosts.filter((p) => p.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-primary">
       <header className="fixed top-0 left-0 w-full bg-primary/80 backdrop-blur-md z-50">
-        <div className={`${styles.paddingX} max-w-7xl mx-auto h-16 flex items-center justify-between`}>
-          <Link
-            to="/"
-            className="flex items-center gap-2"
-            onClick={() => window.scrollTo(0, 0)}
-          >
+        <div
+          className={`${styles.paddingX} max-w-7xl mx-auto h-16 flex items-center justify-between`}
+        >
+          <Link to="/" className="flex items-center gap-2" onClick={() => window.scrollTo(0, 0)}>
             <img src={logo} alt="logo" className="w-9 h-9 object-contain" />
             <p className="text-white text-[18px] font-bold cursor-pointer flex">
               Kelechukwu&nbsp;
@@ -125,7 +126,9 @@ const Blog = () => {
       <div className="w-full pt-28 pb-10 bg-hero-pattern bg-cover bg-no-repeat bg-center">
         <div className={`${styles.paddingX} max-w-7xl mx-auto mt-8`}>
           <h1 className={`${styles.heroHeadText} text-white`}>Blog</h1>
-          <p className={`${styles.sectionSubText} mt-2`}>Insights, tutorials, and stories about web development</p>
+          <p className={`${styles.sectionSubText} mt-2`}>
+            Insights, tutorials, and stories about web development
+          </p>
         </div>
       </div>
 
@@ -141,7 +144,9 @@ const Blog = () => {
                   setSelectedPost(null);
                 }}
                 className={`px-6 py-2 rounded-lg font-medium transition ${
-                  selectedCategory === c ? 'bg-tertiary text-white' : 'bg-black-100 text-secondary hover:text-white'
+                  selectedCategory === c
+                    ? 'bg-tertiary text-white'
+                    : 'bg-black-100 text-secondary hover:text-white'
                 }`}
               >
                 {c}
@@ -151,31 +156,58 @@ const Blog = () => {
         </div>
 
         {selectedPost ? (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
-            <button onClick={() => setSelectedPost(null)} className="text-secondary hover:text-white text-[18px] font-medium mb-8 transition">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl"
+          >
+            <button
+              onClick={() => setSelectedPost(null)}
+              className="text-secondary hover:text-white text-[18px] font-medium mb-8 transition"
+            >
               ← Back to All Posts
             </button>
             <div className="bg-black-100 p-8 rounded-2xl">
               <div className="flex items-center gap-4 mb-6">
-                <span className="text-xs font-bold text-green-500 uppercase tracking-wider">{selectedPost.category}</span>
+                <span className="text-xs font-bold text-green-500 uppercase tracking-wider">
+                  {selectedPost.category}
+                </span>
                 <p className="text-secondary text-[14px]">{selectedPost.date}</p>
               </div>
               <h1 className={`${styles.sectionHeadText} text-white mb-4`}>{selectedPost.title}</h1>
               <p className="text-secondary text-[16px] mb-8">By {selectedPost.author}</p>
-              <div className="text-white text-[18px] leading-8 whitespace-pre-wrap">{selectedPost.content}</div>
+              <div className="text-white text-[18px] leading-8 whitespace-pre-wrap">
+                {selectedPost.content}
+              </div>
             </div>
           </motion.div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ staggerChildren: 0.1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ staggerChildren: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
             {filteredPosts.map((post, i) => (
-              <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} onClick={() => setSelectedPost(post)} className="bg-black-100 p-6 rounded-2xl hover:bg-black-200 cursor-pointer transition transform hover:scale-105">
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                onClick={() => setSelectedPost(post)}
+                className="bg-black-100 p-6 rounded-2xl hover:bg-black-200 cursor-pointer transition transform hover:scale-105"
+              >
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-green-500 uppercase tracking-wider">{post.category}</span>
+                  <span className="text-xs font-bold text-green-500 uppercase tracking-wider">
+                    {post.category}
+                  </span>
                   <p className="text-secondary text-[12px]">{post.date}</p>
                 </div>
                 <h3 className="text-white text-[20px] font-bold mb-3">{post.title}</h3>
                 <p className="text-secondary text-[14px] mb-4 line-clamp-3">{post.excerpt}</p>
-                <button className="text-green-500 hover:text-white transition text-[14px] font-medium">Read More →</button>
+                <button className="text-green-500 hover:text-white transition text-[14px] font-medium">
+                  Read More →
+                </button>
               </motion.div>
             ))}
           </motion.div>

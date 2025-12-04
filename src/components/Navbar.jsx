@@ -68,7 +68,9 @@ const Navbar = ({ showOnBlog = false }) => {
               </li>
             ))}
             {showOnBlog && (
-              <li className={`text-secondary hover:text-white text-[18px] font-medium cursor-pointer`}>
+              <li
+                className={`text-secondary hover:text-white text-[18px] font-medium cursor-pointer`}
+              >
                 <a href="/blog/admin">Admin</a>
               </li>
             )}
@@ -101,24 +103,24 @@ const Navbar = ({ showOnBlog = false }) => {
                       setActive(nav.title);
                     }}
                   >
-                        {nav.id === 'blog' ? (
-                          <a href="/blog">{nav.title}</a>
-                        ) : (
-                          <a href={`#${nav.id}`}>{nav.title}</a>
-                        )}
+                    {nav.id === 'blog' ? (
+                      <a href="/blog">{nav.title}</a>
+                    ) : (
+                      <a href={`#${nav.id}`}>{nav.title}</a>
+                    )}
                   </li>
                 ))}
-                    {showOnBlog && (
-                      <li
-                        className={`font-poppins font-medium cursor-pointer text-[16px] text-secondary`}
-                        onClick={() => {
-                          setToggle(!toggle);
-                          setActive('Admin');
-                        }}
-                      >
-                        <a href="/blog/admin">Admin</a>
-                      </li>
-                    )}
+                {showOnBlog && (
+                  <li
+                    className={`font-poppins font-medium cursor-pointer text-[16px] text-secondary`}
+                    onClick={() => {
+                      setToggle(!toggle);
+                      setActive('Admin');
+                    }}
+                  >
+                    <a href="/blog/admin">Admin</a>
+                  </li>
+                )}
               </ul>
             </div>
           )}
