@@ -17,7 +17,7 @@ const AdminLogin = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/api/auth/login`,
+        `${import.meta.env.VITE_BACKEND_URL || 'https://threed-portfolio-nakj.onrender.com'}/api/auth/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
