@@ -221,13 +221,11 @@ app.delete('/api/posts/:id', authenticate, (req, res) => {
   }
 });
 
-// Root health-check so visiting / returns a friendly message instead of "Cannot GET /"
-app.get('/', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: '3D portfolio backend is running',
-    api: '/api',
-  });
+// Serving the frontend to the server
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Start server after DB is initialized
@@ -250,3 +248,4 @@ initDB()
     console.error('Failed to initialize DB:', err);
     process.exit(1);
   });
+
