@@ -221,11 +221,17 @@ app.delete('/api/posts/:id', authenticate, (req, res) => {
   }
 });
 
-// Serving the frontend to the server
-app.use(express.static(path.join(__dirname, 'dist')));
+// CORS and JSON middleware
+app.use(cors());
+app.use(express.json());
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+
+// Base API route
+app.get("/" , (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Blog working fine",
+});
 });
 
 // Start server after DB is initialized
