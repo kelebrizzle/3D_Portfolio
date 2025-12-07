@@ -4,6 +4,15 @@ import { OrbitControls, Preload, useGLTF } from '@react-three/drei';
 
 import CanvasLoader from '../Loader';
 
+const canvasSupported = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('webgl2')));
+  } catch (e) {
+    return false;
+  }
+};
+
 const Computers = ({ isMobile }) => {
   const computer = useGLTF('./desktop_pc/scene.gltf');
 
@@ -43,8 +52,12 @@ const Computers = ({ isMobile }) => {
 
 const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [webglSupported, setWebglSupported] = useState(true);
 
   useEffect(() => {
+    // Check WebGL support
+    setWebglSupported(canvasSupported());
+
     // Add a listener for changes to the screen size
     const mediaQuery = window.matchMedia('(max-width: 500px)');
 
@@ -64,6 +77,18 @@ const ComputersCanvas = () => {
       mediaQuery.removeEventListener('change', handleMediaQueryChange);
     };
   }, []);
+
+  if (!webglSupported) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-black">
+        <img
+          src="./desktop_pc/scene.png"
+          alt="3D Desktop"
+          className="w-full h-full object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <Canvas

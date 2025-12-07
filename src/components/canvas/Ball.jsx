@@ -1,8 +1,17 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Decal, Float, OrbitControls, Preload, useTexture } from '@react-three/drei';
 
 import CanvasLoader from '../Loader';
+
+const canvasSupported = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('webgl2')));
+  } catch (e) {
+    return false;
+  }
+};
 
 const Ball = (props) => {
   const [decal] = useTexture([props.imgUrl]);
@@ -29,6 +38,23 @@ const Ball = (props) => {
 
 const BallCanvas = ({ icon }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [webglSupported, setWebglSupported] = useState(true);
+
+  useEffect(() => {
+    setWebglSupported(canvasSupported());
+  }, []);
+
+  if (!webglSupported) {
+    return (
+      <div className="w-32 h-32 flex items-center justify-center bg-black rounded-full">
+        <img
+          src={icon}
+          alt="tech icon"
+          className="w-20 h-20 object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <Canvas
