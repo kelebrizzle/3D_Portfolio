@@ -7,18 +7,30 @@ import CanvasLoader from '../Loader';
 const Computers = ({ isMobile }) => {
   const computer = useGLTF('./desktop_pc/scene.gltf');
 
+  // Disable shadows on mobile to improve performance
+  if (isMobile) {
+    computer.scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = false;
+        child.receiveShadow = false;
+      }
+    });
+  }
+
   return (
     <mesh>
-      <hemisphereLight intensity={0.15} groundColor="black" />
-      <spotLight
-        position={[-20, 50, 10]}
-        angle={0.12}
-        penumbra={1}
-        intensity={1}
-        castShadow
-        shadow-mapSize={isMobile ? 512 : 1024}
-      />
-      <pointLight intensity={1} />
+      <hemisphereLight intensity={isMobile ? 0.3 : 0.15} groundColor="black" />
+      {!isMobile && (
+        <spotLight
+          position={[-20, 50, 10]}
+          angle={0.12}
+          penumbra={1}
+          intensity={1}
+          castShadow
+          shadow-mapSize={1024}
+        />
+      )}
+      <pointLight intensity={isMobile ? 0.8 : 1} />
       <primitive
         object={computer.scene}
         scale={isMobile ? 0.7 : 0.75}
@@ -56,10 +68,15 @@ const ComputersCanvas = () => {
   return (
     <Canvas
       frameloop="demand"
-      shadows
+      shadows={!isMobile}
       dpr={isMobile ? [1, 1] : [1, 2]}
       camera={{ position: [20, 3, 5], fov: 25 }}
-      gl={{ preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
+      gl={{
+        preserveDrawingBuffer: true,
+        powerPreference: 'high-performance',
+        antialias: !isMobile,
+        alpha: true,
+      }}
     >
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls enableZoom={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} />

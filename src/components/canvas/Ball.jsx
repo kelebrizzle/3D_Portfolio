@@ -10,10 +10,10 @@ const Ball = (props) => {
 
   return (
     <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[0, 0, 0.05]} />
-      <mesh castShadow receiveShadow scale={2.75}>
-        <icosahedronGeometry args={[1, isMobile ? 0 : 1]} />
+      <ambientLight intensity={isMobile ? 0.5 : 0.25} />
+      <directionalLight position={[0, 0, 0.05]} intensity={isMobile ? 0.5 : 1} />
+      <mesh castShadow={!isMobile} receiveShadow={!isMobile} scale={2.75}>
+        <icosahedronGeometry args={[1, 0]} />
         <meshStandardMaterial color="#fff8eb" polygonOffset polygonOffsetFactor={-5} flatShading />
         <Decal
           position={[0, 0, 1]}
@@ -34,14 +34,19 @@ const BallCanvas = ({ icon }) => {
     <Canvas
       frameloop="demand"
       dpr={isMobile ? [1, 1] : [1, 2]}
-      gl={{ preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
+      gl={{
+        preserveDrawingBuffer: true,
+        powerPreference: 'high-performance',
+        antialias: !isMobile,
+        alpha: true,
+      }}
     >
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls enableZoom={false} />
         <Ball imgUrl={icon} />
       </Suspense>
 
-      <Preload all />
+      {!isMobile && <Preload all />}
     </Canvas>
   );
 };
