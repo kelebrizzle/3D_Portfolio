@@ -225,13 +225,12 @@ app.delete('/api/posts/:id', authenticate, (req, res) => {
 app.use(cors());
 app.use(express.json());
 
-
 // Base API route
-app.get("/" , (req, res) => {
+app.get('/', (req, res) => {
   res.json({
-    status: "ok",
-    message: "Blog working fine",
-});
+    status: 'ok',
+    message: 'Blog working fine',
+  });
 });
 
 // Start server after DB is initialized
@@ -254,4 +253,3 @@ initDB()
     console.error('Failed to initialize DB:', err);
     process.exit(1);
   });
-

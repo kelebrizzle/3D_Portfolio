@@ -6,13 +6,14 @@ import CanvasLoader from '../Loader';
 
 const Ball = (props) => {
   const [decal] = useTexture([props.imgUrl]);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
     <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
       <ambientLight intensity={0.25} />
       <directionalLight position={[0, 0, 0.05]} />
       <mesh castShadow receiveShadow scale={2.75}>
-        <icosahedronGeometry args={[1, 1]} />
+        <icosahedronGeometry args={[1, isMobile ? 0 : 1]} />
         <meshStandardMaterial color="#fff8eb" polygonOffset polygonOffsetFactor={-5} flatShading />
         <Decal
           position={[0, 0, 1]}
@@ -27,8 +28,14 @@ const Ball = (props) => {
 };
 
 const BallCanvas = ({ icon }) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <Canvas frameloop="demand" dpr={[1, 2]} gl={{ preserveDrawingBuffer: true }}>
+    <Canvas
+      frameloop="demand"
+      dpr={isMobile ? [1, 1] : [1, 2]}
+      gl={{ preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
+    >
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls enableZoom={false} />
         <Ball imgUrl={icon} />
