@@ -92,7 +92,7 @@ const Blog = () => {
     },
   ];
 
-  const categories = ['All', 'React', 'CSS', '3D Graphics', 'Backend', 'Database', 'DevOps'];
+  const categories = ['All', 'Lifestyle', 'Technology', 'Others'];
   const filteredPosts =
     selectedCategory === 'All'
       ? blogPosts
@@ -123,8 +123,8 @@ const Blog = () => {
 
       <div className="h-16" />
 
-      <div className="w-full pt-28 pb-10 bg-hero-pattern bg-cover bg-no-repeat bg-center">
-        <div className={`${styles.paddingX} max-w-7xl mx-auto mt-8`}>
+      <div className="w-full pt-16 pb-10 bg-hero-pattern bg-cover bg-no-repeat bg-center">
+        <div className={`${styles.paddingX} max-w-7xl mx-auto mt-2`}>
           <h1 className={`${styles.heroHeadText} text-white`}>Blog</h1>
           <p className={`${styles.sectionSubText} mt-2`}>
             Insights, tutorials, and stories about web development

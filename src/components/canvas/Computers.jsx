@@ -1,35 +1,33 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Preload, useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
+import { vertexShaderGLSL, fragmentShaderGLSL } from '../../shaders/cheapShader';
 
 import CanvasLoader from '../Loader';
 
 const canvasSupported = () => {
   try {
     const canvas = document.createElement('canvas');
-    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('webgl2')));
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext('webgl') || canvas.getContext('webgl2'))
+    );
   } catch (e) {
     return false;
   }
 };
 
 const Computers = ({ isMobile }) => {
-  const computer = useGLTF('./desktop_pc/scene.gltf');
+  // Desktop: render full glTF model. Mobile: render a simplified placeholder
+  if (!isMobile) {
+    const computer = useGLTF('./desktop_pc/scene.gltf');
 
-  // Disable shadows on mobile to improve performance
-  if (isMobile) {
-    computer.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = false;
-        child.receiveShadow = false;
-      }
-    });
-  }
+    // Desktop rendering uses standard lighting and the imported model.
 
-  return (
-    <mesh>
-      <hemisphereLight intensity={isMobile ? 0.3 : 0.15} groundColor="black" />
-      {!isMobile && (
+    return (
+      <mesh>
+        <hemisphereLight intensity={0.15} groundColor="black" />
         <spotLight
           position={[-20, 50, 10]}
           angle={0.12}
@@ -38,14 +36,45 @@ const Computers = ({ isMobile }) => {
           castShadow
           shadow-mapSize={1024}
         />
-      )}
-      <pointLight intensity={isMobile ? 0.8 : 1} />
-      <primitive
-        object={computer.scene}
-        scale={isMobile ? 0.7 : 0.75}
-        position={isMobile ? [0, -3, -2.2] : [0, -3.75, -1.5]}
-        rotation={[-0.01, -0.2, -0.1]}
-      />
+        <pointLight intensity={1} />
+        <primitive
+          object={computer.scene}
+          scale={0.75}
+          position={[0, -3.75, -1.5]}
+          rotation={[-0.01, -0.2, -0.1]}
+        />
+      </mesh>
+    );
+  }
+
+  // Mobile rendering: simplified geometry with compact shader for low-end devices
+  const uniforms = {
+    uColor: { value: new THREE.Color('#0f1724') },
+    uTexture: { value: null },
+    uUseTexture: { value: 0.0 },
+  };
+
+  return (
+    <mesh>
+      <hemisphereLight intensity={0.3} groundColor="black" />
+      <pointLight intensity={0.8} />
+
+      <group position={[0, -1.5, -1.8]}>
+        <mesh scale={[2.2, 1.4, 0.2]}>
+          <boxGeometry args={[1, 1, 1]} />
+          <shaderMaterial
+            vertexShader={vertexShaderGLSL}
+            fragmentShader={fragmentShaderGLSL}
+            uniforms={uniforms}
+            glslVersion={THREE.GLSL3}
+          />
+        </mesh>
+        {/* Screen panel */}
+        <mesh position={[0, 0, 0.12]} scale={[1.8, 0.9, 0.01]}>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshBasicMaterial color="#0b1020" />
+        </mesh>
+      </group>
     </mesh>
   );
 };
@@ -53,6 +82,7 @@ const Computers = ({ isMobile }) => {
 const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [webglSupported, setWebglSupported] = useState(true);
+  const supportsWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
 
   useEffect(() => {
     // Check WebGL support
@@ -88,6 +118,15 @@ const ComputersCanvas = () => {
         />
       </div>
     );
+  }
+
+  if (supportsWebGPU) {
+    try {
+      const ComputersWebGPU = require('../../webgpu/ComputersWebGPU.jsx').default;
+      return <ComputersWebGPU />;
+    } catch (e) {
+      // fall back to WebGL path
+    }
   }
 
   return (
