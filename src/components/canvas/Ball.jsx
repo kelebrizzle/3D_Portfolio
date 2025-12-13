@@ -1,10 +1,8 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, OrbitControls, Preload, useTexture } from '@react-three/drei';
-import * as THREE from 'three';
+import { Float, OrbitControls, Preload, useTexture, Decal } from '@react-three/drei';
 
 import CanvasLoader from '../Loader';
-import { vertexShaderGLSL, fragmentShaderGLSL } from '../../shaders/cheapShader';
 
 const canvasSupported = () => {
   try {
@@ -22,28 +20,35 @@ const Ball = (props) => {
   const [decal] = useTexture([props.imgUrl]);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // Shader uniforms
-  const uniforms = {
-    uColor: { value: new THREE.Color('#fff8eb') },
-    uTexture: { value: decal || new THREE.Texture() },
-    uUseTexture: { value: decal ? 1.0 : 0.0 },
-  };
-
   // Apply a small continuous rotation for subtle motion
   const ref = React.useRef();
   useFrame((state, delta) => {
     if (ref.current) ref.current.rotation.y += delta * 0.25;
   });
+  // Use a minimal unlit material on mobile to avoid shader compilation issues.
+  if (isMobile) {
+    return (
+      <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
+        <mesh ref={ref} scale={2.0}>
+          <icosahedronGeometry args={[1, 0]} />
+          <meshBasicMaterial color="#fff8eb" />
+        </mesh>
+      </Float>
+    );
+  }
 
+  // Desktop: standard material with decal for higher-quality appearance.
   return (
     <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
-      <mesh ref={ref} scale={2.0}>
-        <icosahedronGeometry args={[1, 0]} />
-        <shaderMaterial
-          vertexShader={vertexShaderGLSL}
-          fragmentShader={fragmentShaderGLSL}
-          uniforms={uniforms}
-          glslVersion={THREE.GLSL3}
+      <mesh ref={ref} scale={2.75} castShadow receiveShadow>
+        <icosahedronGeometry args={[1, 1]} />
+        <meshStandardMaterial color="#fff8eb" polygonOffset polygonOffsetFactor={-5} flatShading />
+        <Decal
+          position={[0, 0, 1]}
+          rotation={[2 * Math.PI, 0, 6.25]}
+          scale={1}
+          map={decal}
+          flatShading
         />
       </mesh>
     </Float>
@@ -66,16 +71,7 @@ const BallCanvas = ({ icon }) => {
       </div>
     );
   }
-  // If WebGPU is supported, attempt to use the WebGPU renderer as a higher-performance path.
-  // Failure to load the WebGPU module falls back to the WebGL renderer.
-  if (supportsWebGPU) {
-    try {
-      const BallWebGPU = require('../../webgpu/BallWebGPU.jsx').default;
-      return <BallWebGPU />;
-    } catch (e) {
-      // Proceed with the WebGL renderer on failure.
-    }
-  }
+  // WebGPU path removed: prefer the WebGL path with safe fallbacks for mobile devices.
   return (
     <Canvas
       frameloop="demand"

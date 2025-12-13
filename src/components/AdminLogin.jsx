@@ -53,7 +53,7 @@ const AdminLogin = () => {
             <img src={logo} alt="logo" className="w-9 h-9 object-contain" />
             <p className="text-white text-[18px] font-bold cursor-pointer flex">
               Kelechukwu&nbsp;
-              <span className="sm:block hidden"> | Portfolio</span>
+              <span className="sm:block hidden"> | Blog</span>
             </p>
           </Link>
         </div>

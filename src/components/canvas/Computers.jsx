@@ -1,8 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Preload, useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
-import { vertexShaderGLSL, fragmentShaderGLSL } from '../../shaders/cheapShader';
 
 import CanvasLoader from '../Loader';
 
@@ -19,12 +17,10 @@ const canvasSupported = () => {
 };
 
 const Computers = ({ isMobile }) => {
-  // Desktop: render full glTF model. Mobile: render a simplified placeholder
+  // Load glTF model unconditionally to satisfy React hooks rules.
+  const computer = useGLTF('./desktop_pc/scene.gltf');
+
   if (!isMobile) {
-    const computer = useGLTF('./desktop_pc/scene.gltf');
-
-    // Desktop rendering uses standard lighting and the imported model.
-
     return (
       <mesh>
         <hemisphereLight intensity={0.15} groundColor="black" />
@@ -47,13 +43,7 @@ const Computers = ({ isMobile }) => {
     );
   }
 
-  // Mobile rendering: simplified geometry with compact shader for low-end devices
-  const uniforms = {
-    uColor: { value: new THREE.Color('#0f1724') },
-    uTexture: { value: null },
-    uUseTexture: { value: 0.0 },
-  };
-
+  // Mobile: render a lightweight placeholder using basic materials.
   return (
     <mesh>
       <hemisphereLight intensity={0.3} groundColor="black" />
@@ -62,12 +52,7 @@ const Computers = ({ isMobile }) => {
       <group position={[0, -1.5, -1.8]}>
         <mesh scale={[2.2, 1.4, 0.2]}>
           <boxGeometry args={[1, 1, 1]} />
-          <shaderMaterial
-            vertexShader={vertexShaderGLSL}
-            fragmentShader={fragmentShaderGLSL}
-            uniforms={uniforms}
-            glslVersion={THREE.GLSL3}
-          />
+          <meshBasicMaterial color="#0f1724" />
         </mesh>
         {/* Screen panel */}
         <mesh position={[0, 0, 0.12]} scale={[1.8, 0.9, 0.01]}>
@@ -82,7 +67,6 @@ const Computers = ({ isMobile }) => {
 const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [webglSupported, setWebglSupported] = useState(true);
-  const supportsWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
 
   useEffect(() => {
     // Check WebGL support
@@ -120,14 +104,7 @@ const ComputersCanvas = () => {
     );
   }
 
-  if (supportsWebGPU) {
-    try {
-      const ComputersWebGPU = require('../../webgpu/ComputersWebGPU.jsx').default;
-      return <ComputersWebGPU />;
-    } catch (e) {
-      // fall back to WebGL path
-    }
-  }
+  // WebGPU renderer removed: use WebGL with safe fallbacks for low-end devices.
 
   return (
     <Canvas

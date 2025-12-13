@@ -108,7 +108,7 @@ const Blog = () => {
             <img src={logo} alt="logo" className="w-9 h-9 object-contain" />
             <p className="text-white text-[18px] font-bold cursor-pointer flex">
               Kelechukwu&nbsp;
-              <span className="sm:block hidden"> | Portfolio</span>
+              <span className="sm:block hidden"> | Blog</span>
             </p>
           </Link>
           <a
@@ -127,7 +127,7 @@ const Blog = () => {
         <div className={`${styles.paddingX} max-w-7xl mx-auto mt-2`}>
           <h1 className={`${styles.heroHeadText} text-white`}>Blog</h1>
           <p className={`${styles.sectionSubText} mt-2`}>
-            Insights, tutorials, and stories about web development
+            Insights, tutorials, and stories about technology
           </p>
         </div>
       </div>
