@@ -29,5 +29,4 @@ dist-ssr
 .vscode
 
 # Local test and diagnostics
-shader_optimazation.md
-test-render.mjs
+# Local test and diagnostics

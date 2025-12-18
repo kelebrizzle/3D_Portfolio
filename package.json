@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "lint": "eslint \"src/**/*.{js,jsx}\"",
-    "lint:fix": "eslint \"src/**/*.{js,jsx}\" --fix"
+    "lint:fix": "eslint \"src/**/*.{js,jsx}\" --fix",
+    "optimize:gltf": "npx @gltf-transform/cli draco public/desktop_pc/scene.gltf public/desktop_pc/scene_draco.glb",
+    "optimize:images": "npx imagemin-cli 'public/desktop_pc/textures/*.png' --out-dir=public/desktop_pc/textures-compressed --plugin=pngquant"
   },
   "dependencies": {
     "@emailjs/browser": "^3.10.0",
@@ -25,6 +27,7 @@
     "three": "^0.149.0"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.2.1",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "@vitejs/plugin-react": "^3.1.0",

@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Preload, useGLTF } from '@react-three/drei';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 import CanvasLoader from '../Loader';
 
@@ -16,50 +17,38 @@ const canvasSupported = () => {
   }
 };
 
-const Computers = ({ isMobile }) => {
-  // Load glTF model unconditionally to satisfy React hooks rules.
-  const computer = useGLTF('./desktop_pc/scene.gltf');
+const Computers = ({ isMobile, dracoModel = null }) => {
+  // Load the original GLTF model unconditionally to satisfy hooks rule.
+  const original = useGLTF('./desktop_pc/scene.gltf');
 
-  if (!isMobile) {
-    return (
-      <mesh>
-        <hemisphereLight intensity={0.15} groundColor="black" />
-        <spotLight
-          position={[-20, 50, 10]}
-          angle={0.12}
-          penumbra={1}
-          intensity={1}
-          castShadow
-          shadow-mapSize={1024}
-        />
-        <pointLight intensity={1} />
-        <primitive
-          object={computer.scene}
-          scale={0.75}
-          position={[0, -3.75, -1.5]}
-          rotation={[-0.01, -0.2, -0.1]}
-        />
-      </mesh>
-    );
-  }
+  // Prefer the Draco model if it was loaded asynchronously and passed down
+  // (dracoModel is loaded in the parent via a non-hook loader).
+  const computer = dracoModel && dracoModel.scene ? dracoModel : original;
 
-  // Mobile: render a lightweight placeholder using basic materials.
+  // Use the same glTF model for desktop and mobile, adjusting scale and
+  // lighting so mobile devices render with good visual quality but without
+  // expensive shadows.
   return (
     <mesh>
-      <hemisphereLight intensity={0.3} groundColor="black" />
-      <pointLight intensity={0.8} />
+      <hemisphereLight intensity={isMobile ? 0.35 : 0.15} groundColor="black" />
+      <spotLight
+        position={[-20, 50, 10]}
+        angle={0.12}
+        penumbra={1}
+        intensity={isMobile ? 0.8 : 1}
+        castShadow={!isMobile}
+        shadow-mapSize={1024}
+      />
+      <pointLight intensity={isMobile ? 0.6 : 1} />
 
-      <group position={[0, -1.5, -1.8]}>
-        <mesh scale={[2.2, 1.4, 0.2]}>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial color="#0f1724" />
-        </mesh>
-        {/* Screen panel */}
-        <mesh position={[0, 0, 0.12]} scale={[1.8, 0.9, 0.01]}>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial color="#0b1020" />
-        </mesh>
-      </group>
+      <primitive
+        object={computer.scene}
+        scale={isMobile ? 0.6 : 0.75}
+        position={isMobile ? [0, -2.5, -1] : [0, -3.75, -1.5]}
+        rotation={[-0.01, -0.2, -0.1]}
+        castShadow={!isMobile}
+        receiveShadow={!isMobile}
+      />
     </mesh>
   );
 };
@@ -67,6 +56,7 @@ const Computers = ({ isMobile }) => {
 const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [webglSupported, setWebglSupported] = useState(true);
+  const [dracoModel, setDracoModel] = useState(null);
 
   useEffect(() => {
     // Check WebGL support
@@ -89,6 +79,31 @@ const ComputersCanvas = () => {
     // Remove the listener when the component is unmounted
     return () => {
       mediaQuery.removeEventListener('change', handleMediaQueryChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Check if a Draco-compressed GLB exists and load it (async) to improve
+    // mobile load size. We keep the original `useGLTF` load for safety.
+    let cancelled = false;
+    const dracoUrl = '/desktop_pc/scene_draco.glb';
+    const loader = new GLTFLoader();
+
+    async function tryLoadDraco() {
+      try {
+        const head = await fetch(dracoUrl, { method: 'HEAD' });
+        if (!head.ok) return;
+        const gltf = await loader.loadAsync(dracoUrl);
+        if (cancelled) return;
+        setDracoModel(gltf);
+      } catch (e) {
+        // No-op: draco asset not present or failed to load.
+      }
+    }
+
+    tryLoadDraco();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -119,10 +134,11 @@ const ComputersCanvas = () => {
         alpha: true,
       }}
     >
-      <Suspense fallback={<CanvasLoader />}>
-        <OrbitControls enableZoom={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} />
-        <Computers isMobile={isMobile} />
-      </Suspense>
+        <Suspense fallback={<CanvasLoader />}>
+          <OrbitControls enableZoom={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} />
+          {/* Pass dracoModel if available, else `Computers` will use the original glTF */}
+          <Computers isMobile={isMobile} dracoModel={dracoModel} />
+        </Suspense>
 
       <Preload all />
     </Canvas>

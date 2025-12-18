@@ -30,8 +30,9 @@ const Ball = (props) => {
     return (
       <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
         <mesh ref={ref} scale={2.0}>
-          <icosahedronGeometry args={[1, 0]} />
-          <meshBasicMaterial color="#fff8eb" />
+          <icosahedronGeometry args={[1, 1]} />
+          <meshStandardMaterial color="#fff8eb" metalness={0.3} roughness={0.4} />
+          <Decal position={[0, 0, 1]} rotation={[2 * Math.PI, 0, 6.25]} scale={0.9} map={decal} />
         </mesh>
       </Float>
     );
@@ -58,16 +59,40 @@ const Ball = (props) => {
 const BallCanvas = ({ icon }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const [webglSupported, setWebglSupported] = useState(true);
-  const supportsWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
-
+  const [optimizedIcon, setOptimizedIcon] = useState(null);
   useEffect(() => {
     setWebglSupported(canvasSupported());
   }, []);
 
+  useEffect(() => {
+    // If the build contains an optimized public icon, prefer it at runtime.
+    // We expect optimised icons to be written to `public/tech-compressed/<basename>`.
+    let cancelled = false;
+    async function checkOptimized() {
+      try {
+        const base = (icon || '').split('/').pop();
+        if (!base) return;
+        const candidate = `/tech-compressed/${base}`;
+        const res = await fetch(candidate, { method: 'HEAD' });
+        if (!cancelled && res.ok) setOptimizedIcon(candidate);
+      } catch (e) {
+        // no-op: optimized icon not available
+      }
+    }
+    checkOptimized();
+    return () => {
+      cancelled = true;
+    };
+  }, [icon]);
+
   if (!webglSupported) {
     return (
       <div className="w-32 h-32 flex items-center justify-center bg-black rounded-full">
-        <img src={icon} alt="tech icon" className="w-20 h-20 object-contain" />
+        <img
+          src={optimizedIcon || icon}
+          alt="tech icon"
+          className="w-20 h-20 object-contain"
+        />
       </div>
     );
   }
@@ -83,9 +108,13 @@ const BallCanvas = ({ icon }) => {
         alpha: true,
       }}
     >
+      {/* Add low-cost lighting so `meshStandardMaterial` renders correctly on mobile */}
+      <ambientLight intensity={0.6} />
+      <pointLight intensity={0.6} position={[10, 10, 10]} />
+
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls enableZoom={false} />
-        <Ball imgUrl={icon} />
+        <Ball imgUrl={optimizedIcon || icon} />
       </Suspense>
 
       {!isMobile && <Preload all />}
