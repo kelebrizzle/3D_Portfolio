@@ -100,10 +100,15 @@ const BallCanvas = ({ icon }) => {
   return (
     <Canvas
       frameloop="demand"
-      dpr={isMobile ? [1, 1] : [1, 2]}
+      dpr={isMobile ? 1 : [1, 1.5]}
+      onCreated={({ gl }) => {
+        try {
+          gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1 : 1.5));
+        } catch (e) {}
+      }}
       gl={{
-        preserveDrawingBuffer: true,
-        powerPreference: 'high-performance',
+        preserveDrawingBuffer: false,
+        powerPreference: isMobile ? 'low-power' : 'high-performance',
         antialias: !isMobile,
         alpha: true,
       }}

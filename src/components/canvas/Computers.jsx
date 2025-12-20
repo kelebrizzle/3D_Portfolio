@@ -86,7 +86,9 @@ const ComputersCanvas = () => {
     // Check if a Draco-compressed GLB exists and load it (async) to improve
     // mobile load size. We keep the original `useGLTF` load for safety.
     let cancelled = false;
-    const dracoUrl = '/desktop_pc/scene_draco.glb';
+    // Prefer the newly optimized GLB (resized textures + Draco). Fall back to
+    // the older draco file if present, then to the original glTF.
+    const dracoUrl = '/desktop_pc/scene_optimized.glb';
     const loader = new GLTFLoader();
 
     async function tryLoadDraco() {
@@ -125,11 +127,16 @@ const ComputersCanvas = () => {
     <Canvas
       frameloop="demand"
       shadows={!isMobile}
-      dpr={isMobile ? [1, 1] : [1, 2]}
+      dpr={isMobile ? 1 : [1, 1.5]}
       camera={{ position: [20, 3, 5], fov: 25 }}
+      onCreated={({ gl }) => {
+        try {
+          gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1 : 1.5));
+        } catch (e) {}
+      }}
       gl={{
-        preserveDrawingBuffer: true,
-        powerPreference: 'high-performance',
+        preserveDrawingBuffer: false,
+        powerPreference: isMobile ? 'low-power' : 'high-performance',
         antialias: !isMobile,
         alpha: true,
       }}
@@ -140,7 +147,7 @@ const ComputersCanvas = () => {
           <Computers isMobile={isMobile} dracoModel={dracoModel} />
         </Suspense>
 
-      <Preload all />
+      {!isMobile && <Preload all />}
     </Canvas>
   );
 };

@@ -13,10 +13,15 @@ const Earth = () => {
 const EarthCanvas = () => {
   return (
     <Canvas
-      shadows
+      shadows={false}
       frameloop="demand"
-      dpr={[1, 2]}
-      gl={{ preserveDrawingBuffer: true }}
+      dpr={[1, 1.5]}
+      onCreated={({ gl }) => {
+        try {
+          gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        } catch (e) {}
+      }}
+      gl={{ preserveDrawingBuffer: false }}
       camera={{
         fov: 45,
         near: 0.1,
@@ -33,7 +38,7 @@ const EarthCanvas = () => {
         />
         <Earth />
 
-        <Preload all />
+        <Preload all={false} />
       </Suspense>
     </Canvas>
   );

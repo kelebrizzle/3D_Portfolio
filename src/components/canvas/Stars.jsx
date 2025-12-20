@@ -30,12 +30,21 @@ const Stars = (props) => {
 const StarsCanvas = () => {
   return (
     <div className="w-full h-auto absolute inset-0 z-[-1]">
-      <Canvas camera={{ position: [0, 0, 1] }}>
+      <Canvas
+        frameloop="demand"
+        dpr={[1, 1.5]}
+        onCreated={({ gl }) => {
+          try {
+            gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+          } catch (e) {}
+        }}
+        camera={{ position: [0, 0, 1] }}
+      >
         <Suspense fallback={null}>
           <Stars />
         </Suspense>
 
-        <Preload all />
+        <Preload all={false} />
       </Canvas>
     </div>
   );
