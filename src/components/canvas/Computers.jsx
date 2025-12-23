@@ -17,13 +17,52 @@ const canvasSupported = () => {
   }
 };
 
-const Computers = ({ isMobile, dracoModel = null }) => {
-  // Load the original GLTF model unconditionally to satisfy hooks rule.
-  const original = useGLTF('./desktop_pc/scene.gltf');
+const Computers = ({ isMobile }) => {
+  // Load the original GLTF model.
+  const computer = useGLTF('./desktop_pc/scene.gltf');
 
-  // Prefer the Draco model if it was loaded asynchronously and passed down
-  // (dracoModel is loaded in the parent via a non-hook loader).
-  const computer = dracoModel && dracoModel.scene ? dracoModel : original;
+  // Synchronously sanitize geometries to avoid NaN values that cause
+  // three.js to compute NaN bounding spheres. Doing this synchronously
+  // (rather than in an effect) reduces the chance computeBoundingSphere
+  // is called before we fix invalid values.
+  if (computer && computer.scene) {
+    try {
+      computer.scene.traverse((child) => {
+        if (!child.isMesh || !child.geometry) return;
+
+        const geom = child.geometry;
+        const sanitizeAttr = (attr) => {
+          if (!attr || !attr.array) return false;
+          const a = attr.array;
+          let found = false;
+          for (let i = 0; i < a.length; i++) {
+            const v = a[i];
+            if (!Number.isFinite(v)) {
+              a[i] = 0;
+              found = true;
+            }
+          }
+          if (found) attr.needsUpdate = true;
+          return found;
+        };
+
+        const p = geom.attributes && geom.attributes.position;
+        const n = geom.attributes && geom.attributes.normal;
+        const hadNaNPos = sanitizeAttr(p);
+        const hadNaNNormal = sanitizeAttr(n);
+        if (hadNaNPos || hadNaNNormal) {
+          try {
+            geom.computeBoundingBox && geom.computeBoundingBox();
+            geom.computeBoundingSphere && geom.computeBoundingSphere();
+          } catch (e) {
+            // ignore compute errors
+          }
+        }
+      });
+    } catch (e) {
+      // no-op
+    }
+  }
 
   // Use the same glTF model for desktop and mobile, adjusting scale and
   // lighting so mobile devices render with good visual quality but without
@@ -82,32 +121,7 @@ const ComputersCanvas = () => {
     };
   }, []);
 
-  useEffect(() => {
-    // Check if a Draco-compressed GLB exists and load it (async) to improve
-    // mobile load size. We keep the original `useGLTF` load for safety.
-    let cancelled = false;
-    // Prefer the newly optimized GLB (resized textures + Draco). Fall back to
-    // the older draco file if present, then to the original glTF.
-    const dracoUrl = '/desktop_pc/scene_optimized.glb';
-    const loader = new GLTFLoader();
-
-    async function tryLoadDraco() {
-      try {
-        const head = await fetch(dracoUrl, { method: 'HEAD' });
-        if (!head.ok) return;
-        const gltf = await loader.loadAsync(dracoUrl);
-        if (cancelled) return;
-        setDracoModel(gltf);
-      } catch (e) {
-        // No-op: draco asset not present or failed to load.
-      }
-    }
-
-    tryLoadDraco();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // No compressed-model loading: always use the original glTF for consistency.
 
   if (!webglSupported) {
     return (

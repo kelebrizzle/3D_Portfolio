@@ -59,31 +59,12 @@ const Ball = (props) => {
 const BallCanvas = ({ icon }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const [webglSupported, setWebglSupported] = useState(true);
-  const [optimizedIcon, setOptimizedIcon] = useState(null);
   useEffect(() => {
     setWebglSupported(canvasSupported());
   }, []);
 
-  useEffect(() => {
-    // If the build contains an optimized public icon, prefer it at runtime.
-    // We expect optimised icons to be written to `public/tech-compressed/<basename>`.
-    let cancelled = false;
-    async function checkOptimized() {
-      try {
-        const base = (icon || '').split('/').pop();
-        if (!base) return;
-        const candidate = `/tech-compressed/${base}`;
-        const res = await fetch(candidate, { method: 'HEAD' });
-        if (!cancelled && res.ok) setOptimizedIcon(candidate);
-      } catch (e) {
-        // no-op: optimized icon not available
-      }
-    }
-    checkOptimized();
-    return () => {
-      cancelled = true;
-    };
-  }, [icon]);
+  // Always use the provided `icon` path at runtime; do not attempt to prefer
+  // any compressed/optimized copy.
 
   if (!webglSupported) {
     return (
@@ -119,7 +100,7 @@ const BallCanvas = ({ icon }) => {
 
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls enableZoom={false} />
-        <Ball imgUrl={optimizedIcon || icon} />
+        <Ball imgUrl={icon} />
       </Suspense>
 
       {!isMobile && <Preload all />}
