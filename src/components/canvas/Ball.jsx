@@ -70,7 +70,7 @@ const BallCanvas = ({ icon }) => {
     return (
       <div className="w-32 h-32 flex items-center justify-center bg-black rounded-full">
         <img
-          src={optimizedIcon || icon}
+          src={icon}
           alt="tech icon"
           className="w-20 h-20 object-contain"
         />
