@@ -17,7 +17,7 @@ const AdminDashboard = () => {
     author: 'Kelechukwu Eze',
   });
 
-  const categories = ['React', 'CSS', '3D Graphics', 'Backend', 'Database', 'DevOps', 'Other'];
+  const categories = ['Lifestyle', 'Technology', 'Other'];
 
   // Check admin auth
   useEffect(() => {

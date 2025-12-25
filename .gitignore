@@ -28,5 +28,9 @@ dist-ssr
 # vscode
 .vscode
 
-# Local test and diagnostics
-# Local test and diagnostics
+vercel.json
+
+test-render.mjs
+
+package-lock.json
+
