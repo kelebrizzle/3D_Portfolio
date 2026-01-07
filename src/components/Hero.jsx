@@ -1,9 +1,23 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { styles } from '../styles';
 import { ComputersCanvas } from './canvas';
 
 const Hero = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handle = (e) => setIsMobile(e.matches);
+    setIsMobile(mq.matches);
+    if (mq.addEventListener) mq.addEventListener('change', handle);
+    else mq.addListener(handle);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', handle);
+      else mq.removeListener(handle);
+    };
+  }, []);
   return (
     <section className={`relative w-full h-screen mx-auto`}>
       <div
@@ -25,7 +39,19 @@ const Hero = () => {
         </div>
       </div>
 
-      <ComputersCanvas />
+      <div className="block lg:hidden px-4 mt-10">
+        <div className="max-w-md mx-auto bg-gradient-to-r from-white/3 to-transparent border border-white/10 rounded-xl p-4 backdrop-blur-sm shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-[#915EFF] flex items-center justify-center text-white text-sm font-semibold">
+            3D
+          </div>
+          <div className="text-left">
+            <p className="text-white font-semibold">Best experienced on desktop</p>
+            <p className="text-white/75 text-sm mt-1">Interactive 3D content is reduced on small screens for accessibility and performance. Open on a larger device for the full experience.</p>
+          </div>
+        </div>
+      </div>
+
+        {!isMobile && <ComputersCanvas />}
 
       <div className="absolute xs:bottom-10 bottom-32 w-full flex justify-center items-center">
         <a href="#about">
