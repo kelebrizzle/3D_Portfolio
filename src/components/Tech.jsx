@@ -26,7 +26,11 @@ const Tech = () => {
           {!isMobile ? (
             <BallCanvas icon={technology.icon} />
           ) : (
-            <img src={technology.icon} alt={technology.name} className="w-full h-full object-contain" />
+            <img
+              src={technology.icon}
+              alt={technology.name}
+              className="w-full h-full object-contain"
+            />
           )}
         </div>
       ))}

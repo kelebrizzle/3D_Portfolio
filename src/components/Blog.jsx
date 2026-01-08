@@ -98,6 +98,14 @@ const Blog = () => {
       ? blogPosts
       : blogPosts.filter((p) => p.category === selectedCategory);
 
+  const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+  const getImageUrl = (image) => {
+    if (!image) return null;
+    if (image.startsWith('http://') || image.startsWith('https://')) return image;
+    if (image.startsWith('/')) return `${backendBase}${image}`;
+    return `${backendBase}/${image}`;
+  };
+
   return (
     <div className="min-h-screen bg-primary">
       <header className="fixed top-0 left-0 w-full bg-primary/80 backdrop-blur-md z-50">
@@ -168,6 +176,13 @@ const Blog = () => {
               ← Back to All Posts
             </button>
             <div className="bg-black-100 p-8 rounded-2xl">
+              {selectedPost.image && (
+                <img
+                  src={getImageUrl(selectedPost.image)}
+                  alt={selectedPost.title}
+                  className="w-full h-64 object-cover rounded-md mb-6"
+                />
+              )}
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-xs font-bold text-green-500 uppercase tracking-wider">
                   {selectedPost.category}
@@ -197,6 +212,15 @@ const Blog = () => {
                 onClick={() => setSelectedPost(post)}
                 className="bg-black-100 p-6 rounded-2xl hover:bg-black-200 cursor-pointer transition transform hover:scale-105"
               >
+                {post.image && (
+                  <div className="mb-4">
+                    <img
+                      src={getImageUrl(post.image)}
+                      alt={post.title}
+                      className="w-full h-44 object-cover rounded-md mb-4"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-bold text-green-500 uppercase tracking-wider">
                     {post.category}

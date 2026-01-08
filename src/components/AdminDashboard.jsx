@@ -11,11 +11,14 @@ const AdminDashboard = () => {
   const [formData, setFormData] = useState({
     title: '',
     date: '',
+    image: '',
     category: '',
     excerpt: '',
     content: '',
     author: 'Kelechukwu Eze',
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   const categories = ['Lifestyle', 'Technology', 'Other'];
 
@@ -98,6 +101,29 @@ const AdminDashboard = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // Format date like 'Jan 8, 2026'
+  const formatDate = (d) => {
+    try {
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (err) {
+      return d.toDateString();
+    }
+  };
+
+  // Initialize date for new post to current date
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, date: prev.date || formatDate(new Date()) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle image file selection (multipart/form-data)
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   // Handle create/update
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -114,46 +140,55 @@ const AdminDashboard = () => {
     }
 
     try {
+      // ensure date is current for new posts
+      const dateToUse = isEditing ? formData.date : formatDate(new Date());
+
+      const fd = new FormData();
+      fd.append('title', formData.title);
+      fd.append('date', dateToUse);
+      fd.append('category', formData.category);
+      fd.append('excerpt', formData.excerpt);
+      fd.append('content', formData.content);
+      fd.append('author', formData.author);
+      // if a new file was selected, send it; otherwise send existing image path to preserve
+      if (imageFile) {
+        fd.append('image', imageFile);
+      } else if (formData.image) {
+        fd.append('existingImage', formData.image);
+      }
+
+      const urlBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
       if (isEditing) {
-        const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/api/posts/${editingId}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(formData),
-          }
-        );
+        const res = await fetch(`${urlBase}/api/posts/${editingId}`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
         if (!res.ok) throw new Error('Update failed');
         await refreshPosts();
         setIsEditing(false);
         setEditingId(null);
       } else {
-        const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/api/posts`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(formData),
-          }
-        );
+        const res = await fetch(`${urlBase}/api/posts`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
         if (!res.ok) throw new Error('Create failed');
         await refreshPosts();
       }
 
       setFormData({
         title: '',
-        date: '',
+        date: formatDate(new Date()),
+        image: '',
         category: '',
         excerpt: '',
         content: '',
         author: 'Kelechukwu Eze',
       });
+      setImageFile(null);
+      setImagePreview('');
     } catch (err) {
       console.error('Submit error:', err);
       alert(err.message || 'Failed to save post');
@@ -165,6 +200,8 @@ const AdminDashboard = () => {
     setFormData(post);
     setEditingId(post.id);
     setIsEditing(true);
+    setImageFile(null);
+    setImagePreview(post.image || '');
     window.scrollTo(0, 0);
   };
 
@@ -303,6 +340,23 @@ const AdminDashboard = () => {
             </div>
 
             <div>
+              <label className="text-white font-medium mb-2 block">Image (optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full text-sm text-white"
+              />
+              {(imagePreview || formData.image) && (
+                <img
+                  src={imagePreview || formData.image}
+                  alt="preview"
+                  className="mt-3 max-h-40 rounded-md object-cover"
+                />
+              )}
+            </div>
+
+            <div>
               <label className="text-white font-medium mb-2 block">Content *</label>
               <textarea
                 name="content"
@@ -329,12 +383,15 @@ const AdminDashboard = () => {
                     setEditingId(null);
                     setFormData({
                       title: '',
-                      date: '',
+                      date: formatDate(new Date()),
+                      image: '',
                       category: '',
                       excerpt: '',
                       content: '',
                       author: 'Kelechukwu Eze',
                     });
+                    setImageFile(null);
+                    setImagePreview('');
                   }}
                   className="bg-black-200 py-3 px-8 rounded-xl outline-none text-white font-bold border border-tertiary hover:bg-opacity-80 transition"
                 >

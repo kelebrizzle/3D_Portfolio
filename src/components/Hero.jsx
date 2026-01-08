@@ -38,19 +38,24 @@ const Hero = () => {
           </p>
           <div className="block lg:hidden mt-6">
             <div className="mx-0 bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-3 sm:p-4 flex items-center gap-3 shadow-md max-w-lg">
-              <div className="w-9 h-9 rounded-full bg-[#915EFF] flex items-center justify-center text-white text-sm font-medium">3D</div>
+              <div className="w-9 h-9 rounded-full bg-[#915EFF] flex items-center justify-center text-white text-sm font-medium">
+                3D
+              </div>
               <div className="text-left">
-                <p className="text-white font-semibold leading-tight">Best experienced on desktop</p>
-                <p className="text-white/70 text-sm mt-1">For accessibility and performance, interactive 3D visuals are reduced on small screens. Use a larger device for the full experience.</p>
+                <p className="text-white font-semibold leading-tight">
+                  Best experienced on desktop
+                </p>
+                <p className="text-white/70 text-sm mt-1">
+                  For accessibility and performance, interactive 3D visuals are reduced on small
+                  screens. Use a larger device for the full experience.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      
-
-        {!isMobile && <ComputersCanvas />}
+      {!isMobile && <ComputersCanvas />}
       <div className="absolute xs:bottom-10 bottom-32 w-full flex justify-center items-center">
         <a href="#about">
           <div className="w-[35px] h-[64px] rounded-3xl border-4 border-secondary flex justify-center items-start p-2">

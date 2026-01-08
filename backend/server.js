@@ -6,12 +6,27 @@ const bcrypt = require('bcryptjs');
 const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Configure uploads directory and multer
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+const storage = multer.diskStorage({
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname) || '';
+    cb(null, `${unique}${ext}`);
+  },
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
+app.use('/uploads', express.static(uploadDir));
 
 const PORT = process.env.PORT || 10000;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -44,12 +59,20 @@ async function initDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
       date TEXT,
+      image TEXT,
       category TEXT,
       excerpt TEXT,
       content TEXT,
       author TEXT
     );
   `);
+
+  // Ensure existing DBs get the new column (no-op if already exists)
+  try {
+    db.run(`ALTER TABLE posts ADD COLUMN image TEXT`);
+  } catch (err) {
+    // column probably already exists, ignore
+  }
 
   // Seed admin if not exists
   try {
@@ -132,10 +155,11 @@ app.get('/api/posts', (req, res) => {
         id: row[0],
         title: row[1],
         date: row[2],
-        category: row[3],
-        excerpt: row[4],
-        content: row[5],
-        author: row[6],
+        image: row[3],
+        category: row[4],
+        excerpt: row[5],
+        content: row[6],
+        author: row[7],
       }));
     }
     res.json(posts);
@@ -145,14 +169,15 @@ app.get('/api/posts', (req, res) => {
   }
 });
 
-app.post('/api/posts', authenticate, (req, res) => {
-  const { title, date, category, excerpt, content, author } = req.body;
+app.post('/api/posts', authenticate, upload.single('image'), (req, res) => {
+  const { title, date, category, excerpt, content, author, existingImage } = req.body;
   if (!title || !excerpt || !content) return res.status(400).json({ message: 'Missing fields' });
 
   try {
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : existingImage || null;
     db.run(
-      `INSERT INTO posts (title, date, category, excerpt, content, author) VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, date, category, excerpt, content, author]
+      `INSERT INTO posts (title, date, image, category, excerpt, content, author) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [title, date, imagePath, category, excerpt, content, author]
     );
     saveDB();
 
@@ -165,10 +190,11 @@ app.post('/api/posts', authenticate, (req, res) => {
         id: row[0],
         title: row[1],
         date: row[2],
-        category: row[3],
-        excerpt: row[4],
-        content: row[5],
-        author: row[6],
+        image: row[3],
+        category: row[4],
+        excerpt: row[5],
+        content: row[6],
+        author: row[7],
       };
     }
     res.status(201).json(post);
@@ -178,30 +204,35 @@ app.post('/api/posts', authenticate, (req, res) => {
   }
 });
 
-app.put('/api/posts/:id', authenticate, (req, res) => {
+app.put('/api/posts/:id', authenticate, upload.single('image'), (req, res) => {
   const { id } = req.params;
-  const { title, date, category, excerpt, content, author } = req.body;
+  const { title, date, category, excerpt, content, author, existingImage } = req.body;
   try {
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : existingImage || null;
     db.run(
-      `UPDATE posts SET title=?, date=?, category=?, excerpt=?, content=?, author=? WHERE id=?`,
-      [title, date, category, excerpt, content, author, id]
+      `UPDATE posts SET title=?, date=?, image=?, category=?, excerpt=?, content=?, author=? WHERE id=?`,
+      [title, date, imagePath, category, excerpt, content, author, id]
     );
     saveDB();
 
-    const result = db.exec(`SELECT * FROM posts WHERE id = ?`, [id]);
+    // Use a prepared statement to query by id (sql.js doesn't support param binding with exec)
+    const stmt = db.prepare(`SELECT * FROM posts WHERE id = ?`);
+    stmt.bind([id]);
     let post = null;
-    if (result && result.length > 0 && result[0].values.length > 0) {
-      const row = result[0].values[0];
+    if (stmt.step()) {
+      const rowObj = stmt.getAsObject();
       post = {
-        id: row[0],
-        title: row[1],
-        date: row[2],
-        category: row[3],
-        excerpt: row[4],
-        content: row[5],
-        author: row[6],
+        id: rowObj.id,
+        title: rowObj.title,
+        date: rowObj.date,
+        image: rowObj.image,
+        category: rowObj.category,
+        excerpt: rowObj.excerpt,
+        content: rowObj.content,
+        author: rowObj.author,
       };
     }
+    stmt.free();
     res.json(post);
   } catch (err) {
     console.error('Update post error:', err);
