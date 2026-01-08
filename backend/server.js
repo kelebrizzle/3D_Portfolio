@@ -170,7 +170,14 @@ app.get('/api/posts', (req, res) => {
 });
 
 app.post('/api/posts', authenticate, upload.single('image'), (req, res) => {
-  const { title, date, category, excerpt, content, author, existingImage } = req.body;
+  // Explicitly extract each field by name
+  const title = req.body.title || '';
+  const date = req.body.date || '';
+  const category = req.body.category || '';
+  const excerpt = req.body.excerpt || '';
+  const content = req.body.content || '';
+  const author = req.body.author || '';
+  const existingImage = req.body.existingImage;
   if (!title || !excerpt || !content) return res.status(400).json({ message: 'Missing fields' });
 
   try {
@@ -206,7 +213,14 @@ app.post('/api/posts', authenticate, upload.single('image'), (req, res) => {
 
 app.put('/api/posts/:id', authenticate, upload.single('image'), (req, res) => {
   const { id } = req.params;
-  const { title, date, category, excerpt, content, author, existingImage } = req.body;
+  // Explicitly extract each field by name
+  const title = req.body.title || '';
+  const date = req.body.date || '';
+  const category = req.body.category || '';
+  const excerpt = req.body.excerpt || '';
+  const content = req.body.content || '';
+  const author = req.body.author || '';
+  const existingImage = req.body.existingImage;
   try {
     const imagePath = req.file ? `/uploads/${req.file.filename}` : existingImage || null;
     db.run(
