@@ -146,16 +146,18 @@ const AdminDashboard = () => {
       const fd = new FormData();
       fd.append('title', formData.title);
       fd.append('date', dateToUse);
-      fd.append('category', formData.category);
-      fd.append('excerpt', formData.excerpt);
-      fd.append('content', formData.content);
-      fd.append('author', formData.author);
-      // if a new file was selected, send it; otherwise send existing image path to preserve
+      // image must be third
       if (imageFile) {
         fd.append('image', imageFile);
       } else if (formData.image) {
         fd.append('existingImage', formData.image);
+      } else {
+        fd.append('image', '');
       }
+      fd.append('category', formData.category);
+      fd.append('excerpt', formData.excerpt);
+      fd.append('content', formData.content);
+      fd.append('author', formData.author);
 
       const urlBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
       if (isEditing) {
